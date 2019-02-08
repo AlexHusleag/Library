@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?><jnlp spec="1.0" xmlns:jfx="http://javafx.com" href="Library Assistant.jnlp">
+    <information>
+        <title>Library Assistant</title>
+        <vendor>Alex</vendor>
+        <description>null</description>
+        <offline-allowed/>
+    </information>
+    <update check="always"/>
+    <resources>
+        <j2se version="10.0.2+" href="http://java.sun.com/products/autodl/j2se"/>
+        <jar href="lib\derby.jar" size="3232770" download="eager"/>
+        <jar href="lib\derbyclient.jar" size="588394" download="eager"/>
+        <jar href="lib\jfoenix-9.0.8.jar" size="2419463" download="eager"/>
+    </resources>
+    <jfx:javafx-desc width="800" height="600" main-class="library.assistant.ui.main.Main" name="Main"/>
+</jnlp>
+

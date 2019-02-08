@@ -1,8 +1,8 @@
 ----------------------------------------------------------------
-Sat Jan 19 16:57:06 EET 2019:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-0168-669d-8593-0000077964e8 
+Fri Feb 08 17:51:07 EET 2019:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-0168-cdce-2b80-00000776e4f0 
 on database directory C:\Users\Alex\Desktop\LibraryManager-master\LibraryManager\database with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@41906a77 
-Loaded from file:/C:/Users/Alex/Desktop/LibraryManager-master/LibraryManager/dist/run258859847/lib/derby.jar
+Loaded from file:/C:/Users/Alex/Desktop/LibraryManager-master/LibraryManager/dist/run2133774777/lib/derby.jar
 java.vendor=Oracle Corporation
 java.runtime.version=10.0.2+13
 user.dir=C:\Users\Alex\Desktop\LibraryManager-master\LibraryManager
