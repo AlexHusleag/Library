@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package library.assistant.ui.addbook;
 
 import com.jfoenix.controls.JFXButton;
@@ -21,11 +16,8 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import library.assistant.database.DatabaseHandler;
+import library.assistant.ui.listbook.BookListController;
 
-/**
- *
- * @author Alex
- */
 public class BookAddController implements Initializable {
 
     private Label label;
@@ -41,10 +33,12 @@ public class BookAddController implements Initializable {
     private JFXButton saveButton;
     @FXML
     private JFXButton cancelButton;
-
-    private DatabaseHandler databaseHandler;
     @FXML
     private AnchorPane rootPane;
+
+    private DatabaseHandler databaseHandler;
+
+    private Boolean isInEditMode = Boolean.FALSE;
 
     private void handleButtonAction(ActionEvent event) {
         System.out.println("You clicked me!");
@@ -54,7 +48,6 @@ public class BookAddController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         databaseHandler = DatabaseHandler.getInstance();
-
         checkData();
     }
 
@@ -73,6 +66,13 @@ public class BookAddController implements Initializable {
             return;
         }
 
+        if (isInEditMode) {
+            handleEditOperation();
+//            BookListController b = new BookListController();
+//            b.loadData();
+            return;
+        }
+
         String query = "INSERT INTO BOOk VALUES("
                 + "'" + bookID + "',"
                 + "'" + bookAuthor + "',"
@@ -87,6 +87,11 @@ public class BookAddController implements Initializable {
             alert.setHeaderText(null);
             alert.setContentText("Success");
             alert.showAndWait();
+            this.title.setText("");
+            this.author.setText("");
+            this.publisher.setText("");
+            this.id.setText("");
+            
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setHeaderText(null);
@@ -112,6 +117,33 @@ public class BookAddController implements Initializable {
             }
         } catch (SQLException ex) {
             Logger.getLogger(BookAddController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void populateEditBookUI(BookListController.Book book) {
+        title.setText(book.getTitle());
+        id.setText(book.getId());
+        author.setText(book.getAuthor());
+        publisher.setText(book.getPublisher());
+        id.setEditable(false);
+        this.isInEditMode = Boolean.TRUE;
+
+    }
+
+    private void handleEditOperation() {
+        BookListController.Book book = new BookListController.Book(title.getText(), id.getText(), author.getText(), publisher.getText(), true);
+        if (databaseHandler.updateBook(book)) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setHeaderText("Success");
+            alert.setContentText("Book Updated");
+            alert.showAndWait();
+            return;
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText("Failed");
+            alert.setContentText("Can't update book");
+            alert.showAndWait();
+            return;
         }
     }
 

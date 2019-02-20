@@ -9,6 +9,9 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import java.sql.PreparedStatement;
+import library.assistant.ui.listbook.BookListController.Book;
+import library.assistant.ui.listmember.MemberListController;
 
 public class DatabaseHandler {
 
@@ -36,8 +39,8 @@ public class DatabaseHandler {
             Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance();
             conn = DriverManager.getConnection(DB_URL);
         } catch (Exception e) {
-            //Logger.getLogger(DatabaseHandler.class.getName()).log(Level.SEVERE, null, ex);
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Can't load database", "Datavase Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
         }
 
     }
@@ -60,7 +63,6 @@ public class DatabaseHandler {
                         + ")");
             }
         } catch (SQLException e) {
-            //Logger.getLogger(DatabaseHandler.class.getName()).log(Level.SEVERE, null, ex);
             System.err.println(e.getMessage() + " --- setupDatabase");
         } finally {
 
@@ -74,7 +76,6 @@ public class DatabaseHandler {
             result = stmt.executeQuery(query);
 
         } catch (SQLException ex) {
-            //Logger.getLogger(DatabaseHandler.class.getName()).log(Level.SEVERE, null, ex);
             System.err.println("Exception at execQuery");
             return null;
         } finally {
@@ -90,7 +91,6 @@ public class DatabaseHandler {
             stmt.execute(qu);
             return true;
         } catch (SQLException ex) {
-            //Logger.getLogger(DatabaseHandler.class.getName()).log(Level.SEVERE, null, ex);
             JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
             return false;
         }
@@ -114,7 +114,6 @@ public class DatabaseHandler {
                         + ")");
             }
         } catch (SQLException e) {
-            //Logger.getLogger(DatabaseHandler.class.getName()).log(Level.SEVERE, null, ex);
             System.err.println(e.getMessage() + " --- setupDatabase");
             e.printStackTrace();
         } finally {
@@ -145,5 +144,76 @@ public class DatabaseHandler {
             Logger.getLogger(DatabaseHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+    }
+
+    public boolean deleteBook(Book book) {
+        try {
+            String deleteStatement = "DELETE FROM BOOK WHERE ID=?";
+            PreparedStatement stmt = conn.prepareStatement(deleteStatement);
+            stmt.setString(1, book.getId());
+            int deletedRows = stmt.executeUpdate();
+
+            if (deletedRows == 1) {
+                return true;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DatabaseHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public boolean isBookAlreadyIssues(Book book) {
+        try {
+            String checkstmt = "SELECT COUNT(*) FROM ISSUE WHERE bookID=?";
+            PreparedStatement stmt = conn.prepareStatement(checkstmt);
+            stmt.setString(1, book.getId());
+            ResultSet rs = stmt.executeQuery();
+
+            // If execution was successful, verificam daca exista vreo carte deja issues ( FOREIGN_KEY , ISSUE table ) 
+            if (rs.next()) {
+                int count = rs.getInt(1);
+                System.out.println(count);
+
+                return (count > 0);
+            }
+            int deletedRows = stmt.executeUpdate();
+            System.out.println(deletedRows);
+            return true;
+        } catch (SQLException ex) {
+            Logger.getLogger(DatabaseHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public boolean updateBook(Book book) {
+        try {
+            String update = "UPDATE BOOK SET TITLE=?, AUTHOR=?, PUBLISHER=? WHERE ID=?";
+            PreparedStatement stmt = conn.prepareStatement(update);
+            stmt.setString(1, book.getTitle());
+            stmt.setString(2, book.getAuthor());
+            stmt.setString(3, book.getPublisher());
+            stmt.setString(4, book.getId());
+            int res = stmt.executeUpdate();  // return 1 if it's successfull because we update one row
+            return (res > 0);
+        } catch (SQLException ex) {
+            Logger.getLogger(DatabaseHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public boolean updateMember(MemberListController.Member member) {
+        try {
+            String update = "UPDATE MEMBER SET NAME=?, EMAIL=?, MOBILE=? WHERE ID=?";
+            PreparedStatement stmt = conn.prepareStatement(update);
+            stmt.setString(1, member.getName());
+            stmt.setString(2, member.getEmail());
+            stmt.setString(3, member.getMobile());
+            stmt.setString(4, member.getId());
+            int res = stmt.executeUpdate();  // return 1 if it's successfull because we update one row
+            return (res > 0);
+        } catch (SQLException ex) {
+            Logger.getLogger(DatabaseHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
     }
 }

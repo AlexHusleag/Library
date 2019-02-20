@@ -24,11 +24,13 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import library.assistant.database.DatabaseHandler;
-// Test
+import library.assistant.Icons.LibraryAssistantIcon;
+
 public class MainController implements Initializable {
 
     @FXML
@@ -51,18 +53,21 @@ public class MainController implements Initializable {
     private Text memberMobile;
     @FXML
     private JFXTextField bookID;
-
-    DatabaseHandler databaseHandler;
     @FXML
     private ListView<String> issueDataList;
 
+    private DatabaseHandler databaseHandler;
+    @FXML
+    private StackPane rootPane;
+
     public MainController() {
     }
+    
     private boolean isReadyForSubmission = false;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        JFXDepthManager.setDepth(book_info, 3);
+        JFXDepthManager.setDepth(book_info, 1);
         JFXDepthManager.setDepth(member_info, 1);
         databaseHandler = new DatabaseHandler();
     }
@@ -87,6 +92,7 @@ public class MainController implements Initializable {
         loadWindow("/library/assistant/ui/listbook/book_list.fxml", "Book List");
     }
 
+
     private void loadWindow(String location, String title) {
         try {
             // The parent can be different in some casses, AnchorPane, StackPane
@@ -95,11 +101,14 @@ public class MainController implements Initializable {
             stage.setTitle(title);
             stage.setScene(new Scene(parent));
             stage.show();
+            LibraryAssistantIcon.setStageIcon(stage);
         } catch (IOException ex) {
             Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
+    
+    // cand apasam enter in Book ID TextField
     @FXML
     private void loadBookInfo(ActionEvent event) {
         clearBookCache();
@@ -107,7 +116,7 @@ public class MainController implements Initializable {
         String qu = "SELECT * FROM BOOK WHERE id = '" + id + "'";
 
         databaseHandler = DatabaseHandler.getInstance();
-        ResultSet rs = databaseHandler.execQuery(qu);
+        ResultSet rs = databaseHandler.execQuery(qu); 
         Boolean flag = false;
         try {
             while (rs.next()) {
@@ -116,9 +125,11 @@ public class MainController implements Initializable {
                 Boolean bStatus = rs.getBoolean("isAvailable");
                 bookName.setText(bName);
                 authorName.setText(bAuthor);
+                // if bstatus true -> available else not available
                 String status = (bStatus) ? "Available" : "Not Available";
                 bookStatus.setText(status);
 
+                // Daca se gaseste un match flag-ul devine true
                 flag = true;
             }
             if (!flag) {
@@ -140,6 +151,8 @@ public class MainController implements Initializable {
         memberMobile.setText("");
     }
 
+    
+    // Cand apasam enter in Member ID TextField
     @FXML
     private void loadMemberInfo(ActionEvent event) {
         clearMemberCache();
@@ -172,6 +185,14 @@ public class MainController implements Initializable {
         String memberID = memberIDInput.getText();
         String bookID = bookIDInput.getText();
 
+        if (memberID.isEmpty() || bookID.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Invalid info");
+            return;
+        }
+
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Operation");
         alert.setHeaderText(null);
@@ -183,6 +204,7 @@ public class MainController implements Initializable {
             String str = "INSERT INTO ISSUE(memberID,bookID) VALUES ("
                     + "'" + memberID + "',"
                     + "'" + bookID + "')";
+            
             String str2 = "UPDATE BOOK SET isAvailable = false WHERE id = '" + bookID + "'";
 
             System.out.println(str);
@@ -210,6 +232,9 @@ public class MainController implements Initializable {
         }
     }
 
+    
+    // Renew / Submission - Enter Book ID - ENTER. Vedem cui ii este o anumita carte
+    //                                             rezervata.
     @FXML
     private void loadBookInfo2(ActionEvent event) {
         ObservableList<String> issueData = FXCollections.observableArrayList();
@@ -256,8 +281,11 @@ public class MainController implements Initializable {
         issueDataList.getItems().setAll(issueData);
     }
 
+    
+    // Returnam cartea
     @FXML
     private void loadSubmissionOp(ActionEvent event) {
+        // daca cartea a fost gasita este true aici, dupa enter
         if (!isReadyForSubmission) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Failed");
@@ -300,9 +328,11 @@ public class MainController implements Initializable {
 
     }
 
+    
+    // Renea a book. update issue time and increment count
     @FXML
     private void loadRenewOp(ActionEvent event) {
-         if (!isReadyForSubmission) {
+        if (!isReadyForSubmission) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Failed");
             alert.setHeaderText(null);
@@ -319,14 +349,14 @@ public class MainController implements Initializable {
         if (response.get() == ButtonType.OK) {
             String ac = "UPDATE ISSUE SET issueTime = CURRENT_TIMESTAMP, renew_count = renew_count+1 WHERE BOOKID = '" + bookID.getText() + "'";
             System.out.println(ac);
-            if(databaseHandler.execAction(ac)){
+            if (databaseHandler.execAction(ac)) {
                 Alert alert1 = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Success");
                 alert.setHeaderText(null);
                 alert.setContentText("Book has been renewed");
                 alert.showAndWait();
             } else {
-                 Alert alert1 = new Alert(Alert.AlertType.ERROR);
+                Alert alert1 = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Failed");
                 alert.setHeaderText(null);
                 alert.setContentText("Book Renewal has Failed");
@@ -339,5 +369,36 @@ public class MainController implements Initializable {
             alert.setContentText("Renewal Operation Canceled");
             alert1.showAndWait();
         }
+    }
+
+    @FXML
+    private void handleMenuClose(ActionEvent event) {
+        ((Stage) rootPane.getScene().getWindow()).close();
+    }
+
+    @FXML
+    private void handleMenuAddBook(ActionEvent event) {
+        loadWindow("/library/assistant/ui/addbook/add_book.fxml", "Add New Book");
+    }
+
+    @FXML
+    private void handleMenuAddMember(ActionEvent event) {
+        loadWindow("/library/assistant/ui/addmember/member_add.fxml", "Add New Member");
+    }
+
+    @FXML
+    private void handleMenuViewBook(ActionEvent event) {
+        loadWindow("/library/assistant/ui/listbook/book_list.fxml", "Book List");
+    }
+
+    @FXML
+    private void handleMenuViewMember(ActionEvent event) {
+        loadWindow("/library/assistant/ui/listmember/member_list.fxml", "Member List");
+    }
+
+    @FXML
+    private void handleMenuFullScreen(ActionEvent event) {
+        Stage stage = ((Stage) rootPane.getScene().getWindow());
+        stage.setFullScreen(!stage.isFullScreen());
     }
 }
